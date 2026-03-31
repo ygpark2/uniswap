@@ -1,0 +1,54 @@
+
+.iconHeader{
+  position: relative;
+}
+
+.iconHeader::before {
+  content: "";
+  background: #fff;
+  width: 130px;
+  height: 3px;
+  position: absolute;
+  right: 51.5%;
+  top: 42.5%;
+}
+
+.iconHeader::after {
+  content: "";
+  background: #fff;
+  width: 130px;
+  height: 3px;
+  position: absolute;
+  left: 51.5%;
+  top: 42.5%;
+}
+
+
+/* ------------------------------------ */
+.iconSection {
+  position: relative;
+}
+
+.iconSection svg {
+  filter: invert(17%) sepia(13%) saturate(2020%) hue-rotate(169deg) brightness(30%) contrast(78%);
+}
+
+.iconSection::before {
+  content: "";
+  background: #2C3E50;
+  width: 130px;
+  height: 3px;
+  position: absolute;
+  right: 51.5%;
+  top: 42.5%;
+}
+
+.iconSection::after {
+  content: "";
+  background: #2C3E50;
+  width: 130px;
+  height: 3px;
+  position: absolute;
+  left: 51.5%;
+  top: 42.5%;
+}

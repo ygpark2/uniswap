@@ -1,0 +1,80 @@
+
+<main>
+  <nz-tabs nzType="card">
+    <nz-tab *ngFor="let tab of tabs" [nzTitle]="tab">
+
+      <nz-page-header
+        class="site-page-header"
+        nzTitle="{{ tab }}"
+        nzSubtitle="첫 화면입니다."
+      ></nz-page-header>
+
+      <!-- 공지사항 -->
+      <nz-list nzItemLayout="vertical" [nzLoading]="initLoading">
+        <nz-list-item *ngFor="let message of tabDataMap.get(tab)">
+          <nz-list-item-meta>
+
+            <nz-list-item-meta-avatar [nzSrc]="userDataMap.get( message.content?.author )?.metadata?.profile?.profile_image"></nz-list-item-meta-avatar>
+            <nz-list-item-meta-title>
+              <a [attr.href]="message.content?.url">{{ message.content?.title }}</a>
+            </nz-list-item-meta-title>
+            <nz-list-item-meta-description>
+              작성자 : {{ message.content?.author }}, 글쓴일 : {{ message.content?.created }}
+            </nz-list-item-meta-description>
+          </nz-list-item-meta>
+
+          {{ message.content?.body | slice:0:50 }}
+
+          <p> {{ message.content?.author }} </p>
+          <p> {{ message.content?.permlink }} </p>
+          <p> {{ message.content?.category }} </p>
+          <p> {{ message.content?.created }} </p>
+
+          <p> {{ message.content?.json_metadata }} </p>
+
+          <ul nz-list-item-actions>
+            <nz-list-item-action>
+              <span nz-icon nzType="star-o" style="margin-right: 8px;"></span>
+              {{ message.content?.payout }}
+            </nz-list-item-action>
+            <nz-list-item-action>
+              <span nz-icon nzType="star-o" style="margin-right: 8px;"></span>
+              {{ message.content?.active_votes?.length }}
+            </nz-list-item-action>
+            <nz-list-item-action>
+              <span nz-icon nzType="star-o" style="margin-right: 8px;"></span>
+              {{ message.content?.depth }}
+            </nz-list-item-action>
+          </ul>
+          <nz-list-item-extra>
+            <img width="272" alt="logo" src="{{ message.content?.json_metadata?.image?.at(0) }}" />
+          </nz-list-item-extra>
+
+          <nz-skeleton
+            *ngIf="message.loading"
+            [nzAvatar]="true"
+            [nzActive]="true"
+            [nzTitle]="false"
+            [nzLoading]="true"
+          ></nz-skeleton>
+        </nz-list-item>
+
+        <div class="loadmore" nz-list-load-more>
+          <!--
+          <div
+            class="search-results"
+            infiniteScroll
+            [infiniteScrollDistance]="2"
+            [infiniteScrollThrottle]="50"
+            (scrolled)="onScroll(tab)"
+          ></div>
+          *ngIf="!loadingMore"
+          -->
+          <button nz-button (click)="onLoadMore(tab)">+ 더보기</button>
+
+        </div>
+      </nz-list>
+
+    </nz-tab>
+  </nz-tabs>
+</main>

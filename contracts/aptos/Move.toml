@@ -1,0 +1,12 @@
+[package]
+name = "swap_gateway"
+version = "1.0.0"
+upgrade_policy = "compatible"
+
+[dependencies.AptosFramework]
+git = "https://github.com/aptos-labs/aptos-core.git"
+rev = "mainnet"
+subdir = "aptos-framework/aptos-framework"
+
+[addresses]
+my_addr = "_"

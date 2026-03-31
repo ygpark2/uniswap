@@ -1,0 +1,88 @@
+{
+  "name": "uniswap",
+  "version": "0.0.1",
+  "engines": {
+    "npm": ">=11.6.0 <13.0.0",
+    "node": ">=24.12.0 <26.0.0"
+  },
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "lint": "ng lint && stylelint \"src/**/*.scss\"",
+    "prettier": "prettier --write \"./src/**/*.{ts,js,html,scss}\"",
+    "prettier:check": "prettier --list-different \"./src/**/*.{ts,js,html,scss}\"",
+    "test": "ng test",
+    "translations:extract": "ngx-translate-extract --input ./src --output ./src/translations/template.json --format=json --clean --sort",
+    "docs": "hads ./docs -o",
+    "solve": "ts-node scripts/solver.ts"
+  },
+  "private": true,
+  "dependencies": {
+    "@angular/animations": "^21.2.6",
+    "@angular/cdk": "^21.2.4",
+    "@angular/common": "^21.2.6",
+    "@angular/compiler": "^21.2.6",
+    "@angular/core": "^21.2.6",
+    "@angular/forms": "^21.2.6",
+    "@angular/material": "^21.2.4",
+    "@angular/platform-browser": "^21.2.6",
+    "@angular/platform-browser-dynamic": "^21.2.6",
+    "@angular/router": "^21.2.6",
+    "@angular/service-worker": "~21.2.6",
+    "@ant-design/icons-angular": "^21.0.0",
+    "@apollo/client": "^4.1.6",
+    "@aptos-labs/ts-sdk": "^6.3.1",
+    "@ngx-translate/core": "^17.0.0",
+    "@solana/web3.js": "^1.98.4",
+    "apollo-angular": "^13.0.0",
+    "ethers": "^6.16.0",
+    "graphql": "^16.13.2",
+    "ng-zorro-antd": "^21.2.1",
+    "ngx-infinite-scroll": "^21.0.0",
+    "rxjs": "~7.8.2",
+    "tronweb": "^6.2.2",
+    "ts-retrofit": "^1.19.1",
+    "tslib": "^2.8.1",
+    "zone.js": "~0.16.1"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "^21.2.5",
+    "@angular-eslint/eslint-plugin": "^21.3.1",
+    "@angular-eslint/eslint-plugin-template": "^21.3.1",
+    "@angular-eslint/template-parser": "^21.3.1",
+    "@angular/cli": "~21.2.5",
+    "@angular/compiler-cli": "^21.2.6",
+    "@angular/language-service": "^21.2.6",
+    "@biesbjerg/ngx-translate-extract": "^7.0.4",
+    "@biesbjerg/ngx-translate-extract-marker": "^1.0.0",
+    "@types/jasmine": "~6.0.0",
+    "@typescript-eslint/eslint-plugin": "8.58.0",
+    "@typescript-eslint/parser": "8.58.0",
+    "eslint": "^10.1.0",
+    "jasmine-core": "~6.1.0",
+    "jest": "^30.3.0",
+    "karma": "~6.4.4",
+    "karma-chrome-launcher": "~3.2.0",
+    "karma-coverage": "~2.2.1",
+    "karma-jasmine": "~5.1.0",
+    "karma-jasmine-html-reporter": "~2.2.0",
+    "prettier": "^3.8.1",
+    "stylelint": "~17.6.0",
+    "tronbox": "^4.6.0",
+    "ts-node": "^10.9.2",
+    "typescript": "~5.9.3"
+  },
+  "prettier": {
+    "singleQuote": true,
+    "overrides": [
+      {
+        "files": "*.scss",
+        "options": {
+          "singleQuote": false
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "APP_NAME": "JTS 홈페이지",
+  "About": "정보",
+  "Hello world !": "안녕하세요 !",
+  "Home": "홈",
+  "Logged in as": "로그인 상태",
+  "Login": "르그인",
+  "Logout": "로그아웃",
+  "Password": "비밀번호",
+  "Password is required": "비밀번호는 필수입니다",
+  "Username": "사용자 이름",
+  "Username is required": "사용자 이름은 필수입니다",
+  "Username or password incorrect.": "사용자 이름 또는 비밀번호가 올바르지 않습니다.",
+  "Remember me": "로그인 상태 유지",
+  "Version": "버전"
+}

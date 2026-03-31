@@ -1,0 +1,65 @@
+<nz-layout>
+  <nz-header>
+    <app-header></app-header>
+  </nz-header>
+
+  <nz-layout>
+    <nz-sider nzWidth="200px" nzTheme="light" nzCollapsible [(nzCollapsed)]="isCollapsed" [nzTrigger]="null">
+      <app-side-menu></app-side-menu>
+    </nz-sider>
+    <nz-layout class="inner-layout">
+      <!--
+        <span
+          class="trigger"
+          nz-icon
+          [nzType]="isCollapsed ? 'menu-unfold' : 'menu-fold'"
+          (click)="isCollapsed = !isCollapsed"
+        ></span>
+      -->
+      <nz-breadcrumb>
+        <nz-breadcrumb-item>Home</nz-breadcrumb-item>
+        <nz-breadcrumb-item>List</nz-breadcrumb-item>
+        <nz-breadcrumb-item>App</nz-breadcrumb-item>
+      </nz-breadcrumb>
+      <nz-content>
+        <router-outlet></router-outlet>
+      </nz-content>
+    </nz-layout>
+  </nz-layout>
+
+  <!--
+  <nz-content class="outer-content">
+    <nz-breadcrumb>
+      <nz-breadcrumb-item>Home</nz-breadcrumb-item>
+      <nz-breadcrumb-item>Jobs</nz-breadcrumb-item>
+      <nz-breadcrumb-item>List</nz-breadcrumb-item>
+    </nz-breadcrumb>
+
+    <br/>
+    <br/>
+
+    <nz-layout class="inner-layout">
+      <nz-sider nzWidth="20%" nzTheme="light">
+        <app-side-menu></app-side-menu>
+      </nz-sider>
+
+      <nz-content class="inner-content">
+        <router-outlet></router-outlet>
+      </nz-content>
+
+      <nz-sider nzWidth="20%" nzTheme="light">
+        <nz-list nzBordered nzHeader="인기 커뮤니티" nzFooter="Footer">
+          <nz-list-item *ngFor="let communityItem of popularCommunityList">
+            <span nz-typography><mark>{{ communityItem[0] }}</mark></span>
+            {{ communityItem[1] }}
+          </nz-list-item>
+        </nz-list>
+      </nz-sider>
+    </nz-layout>
+  </nz-content>
+  -->
+
+  <nz-footer>
+    <app-footer></app-footer>
+  </nz-footer>
+</nz-layout>

@@ -1,0 +1,12 @@
+[package]
+name = "solana-swap-gateway"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+solana-program = "1.18.0"
+borsh = "1.2.0"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+path = "lib.rs"

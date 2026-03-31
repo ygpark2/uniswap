@@ -1,0 +1,68 @@
+<div class="swap-container">
+  <nz-page-header
+    class="site-page-header"
+    nzTitle="Cross-Chain Swap"
+    nzSubtitle="Deposit and swap across multiple chains (POC)"
+  ></nz-page-header>
+
+  <nz-card nzTitle="Swap Gateway" [nzBordered]="false">
+    <form nz-form [formGroup]="swapForm" (ngSubmit)="onSwap()">
+      <nz-form-item>
+        <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="sourceChain" nzRequired>Source Chain</nz-form-label>
+        <nz-form-control [nzSm]="14" [nzXs]="24">
+          <nz-select formControlName="sourceChain" id="sourceChain">
+            <nz-option *ngFor="let chain of chains" [nzValue]="chain.value" [nzLabel]="chain.label"></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="tokenAddress" nzRequired>Token Address</nz-form-label>
+        <nz-form-control [nzSm]="14" [nzXs]="24" nzExtra="Use 0x00...00 for Native (ETH/TRX)">
+          <input nz-input formControlName="tokenAddress" id="tokenAddress" placeholder="0x... or T..." />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="targetChain" nzRequired>Target Chain</nz-form-label>
+        <nz-form-control [nzSm]="14" [nzXs]="24">
+          <nz-select formControlName="targetChain" id="targetChain">
+            <nz-option *ngFor="let chain of chains" [nzValue]="chain.value" [nzLabel]="chain.label"></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="amount" nzRequired>Amount</nz-form-label>
+        <nz-form-control [nzSm]="14" [nzXs]="24">
+          <input nz-input formControlName="amount" id="amount" type="number" step="0.01" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="targetAddress" nzRequired>Target Address</nz-form-label>
+        <nz-form-control [nzSm]="14" [nzXs]="24">
+          <input nz-input formControlName="targetAddress" id="targetAddress" placeholder="Enter target wallet address" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item nz-row class="register-area">
+        <nz-form-control [nzSpan]="14" [nzOffset]="6">
+          <button nz-button nzType="primary" [nzLoading]="isProcessing" [disabled]="swapForm.invalid">Swap Now</button>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  </nz-card>
+
+  <div *ngIf="txHash" class="result-container">
+    <nz-result
+      nzStatus="success"
+      nzTitle="Successfully Initiated Swap!"
+      [nzSubTitle]="'Transaction Hash: ' + txHash"
+    >
+      <div nz-result-extra>
+        <button nz-button nzType="primary" (click)="txHash = null">New Swap</button>
+      </div>
+    </nz-result>
+  </div>
+</div>
