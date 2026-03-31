@@ -82,28 +82,4 @@ export class LoginComponent implements OnInit {
       });
     }
   }
-
-  /*
-  kakaoLogin(): void {
-    const kakaoAuthUri = this.authenticationService.getKakaoOAuth().getAuthRequestUri(); // print https://kauth.kakao.com/oauth/authorize?
-
-    console.log('kakao authUri : ', kakaoAuthUri);
-    kakaoAuthUri.then(authUri => {
-      window.location.href = authUri;
-    }).catch(reason => {
-      console.error("error => ", reason);
-    })
-  }
-
-  naverLogin(): void {
-    const naverAuthUri = this.authenticationService.getNaverOAuth().getAuthRequestUri(); // print https://kauth.kakao.com/oauth/authorize?
-
-    console.log('naver authUri : ', naverAuthUri);
-    naverAuthUri.then(authUri => {
-      window.location.href = authUri;
-    }).catch(reason => {
-      console.error("error => ", reason);
-    })
-  }
-  */
 }
