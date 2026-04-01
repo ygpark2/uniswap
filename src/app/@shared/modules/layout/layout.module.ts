@@ -29,5 +29,6 @@ import { NzBreadCrumbModule } from 'ng-zorro-antd/breadcrumb';
     NzBreadCrumbModule,
   ],
   declarations: [HeaderComponent, SideMenuComponent, LayoutComponent, FooterComponent],
+  exports: [HeaderComponent, SideMenuComponent, LayoutComponent, FooterComponent],
 })
 export class LayoutModule {}

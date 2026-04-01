@@ -9,6 +9,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+
     "watch": "ng build --watch --configuration development",
     "lint": "ng lint && stylelint \"src/**/*.scss\"",
     "prettier": "prettier --write \"./src/**/*.{ts,js,html,scss}\"",
@@ -37,6 +38,7 @@
     "@ngx-translate/core": "^17.0.0",
     "@solana/web3.js": "^1.98.4",
     "apollo-angular": "^13.0.0",
+    "buffer": "^6.0.3",
     "ethers": "^6.16.0",
     "graphql": "^16.13.2",
     "ng-zorro-antd": "^21.2.1",

@@ -13,11 +13,17 @@ pub struct DepositState {
     pub user: Pubkey,
     pub amount: u64,
     pub processed: bool,
+    pub target_chain: String,
+    pub target_address: String,
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Debug)]
 pub enum SwapInstruction {
-    Deposit { amount: u64 },
+    Deposit { 
+        amount: u64,
+        target_chain: String,
+        target_address: String,
+    },
     MarkProcessed,
 }
 
@@ -36,17 +42,20 @@ pub fn process_instruction(
     let user_account = next_account_info(accounts_iter)?;
 
     match instruction {
-        SwapInstruction::Deposit { amount } => {
+        SwapInstruction::Deposit { amount, target_chain, target_address } => {
             let state = DepositState {
                 user: *user_account.key,
                 amount,
                 processed: false,
+                target_chain: target_chain.clone(),
+                target_address: target_address.clone(),
             };
 
             state.serialize(&mut &mut state_account.data.borrow_mut()[..])
                 .map_err(|_| ProgramError::AccountDataTooSmall)?;
 
-            msg!("Deposit recorded");
+            // Structured log for the relayer to parse
+            msg!("Deposited: {}, {}, {}, {}", amount, target_chain, target_address, user_account.key);
         }
         SwapInstruction::MarkProcessed => {
             let mut state = DepositState::try_from_slice(&state_account.data.borrow())

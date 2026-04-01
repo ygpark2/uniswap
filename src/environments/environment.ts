@@ -9,6 +9,13 @@ export const environment = {
   serverUrl: '/api',
   defaultLanguage: 'ko-KR',
   supportedLanguages: ['ko-KR', 'en-US', 'fr-FR'],
+  contractAddresses: {
+    evm: env['SEPOLIA_CONTRACT_ADDRESS'] || '',
+    tron: env['TRON_CONTRACT_ADDRESS'] || '',
+    solana: env['SOLANA_PROGRAM_ID'] || '',
+    solanaState: env['SOLANA_STATE_ACCOUNT'] || '',
+    aptos: env['APTOS_CONTRACT_ADDRESS'] || ''
+  }
 };
 
 /*

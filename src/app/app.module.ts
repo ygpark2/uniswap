@@ -3,8 +3,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { ServiceWorkerModule } from '@angular/service-worker';
-import { RouterModule, Routes } from '@angular/router';
-import { PageNotFoundComponent } from '@app/@shared/components/page-not-found/page-not-found.component';
+import { RouterModule } from '@angular/router';
 
 import { TranslateModule } from '@ngx-translate/core';
 import { InfiniteScrollModule } from 'ngx-infinite-scroll';
@@ -17,9 +16,6 @@ import { AppComponent } from './app.component';
 import { SharedModule } from '@app/@shared/shared.module';
 import { AppRoutingModule } from '@app/app-routing.module';
 
-import { AdminModule } from '@app/modules/admin/admin.module';
-import { DashboardModule } from '@app/modules/dashboard/dashboard.module';
-import { EnergyModule } from '@app/modules/energy/energy.module';
 import { SwapModule } from '@app/modules/swap/swap.module';
 
 import { environment } from '@env/environment';
@@ -45,10 +41,6 @@ const ngZorroConfig: NzConfig = {
     RouterModule,
     TranslateModule.forRoot(),
     InfiniteScrollModule,
-    AdminModule,
-    DashboardModule,
-    EnergyModule,
-    SwapModule,
     SharedModule,
     AppRoutingModule,
   ],
@@ -57,6 +49,7 @@ const ngZorroConfig: NzConfig = {
       provide: NZ_CONFIG,
       useValue: ngZorroConfig,
     },
+    /*
     provideNamedApollo(() => {
       const httpLink = inject(HttpLink);
       return {
@@ -68,6 +61,7 @@ const ngZorroConfig: NzConfig = {
         },
       };
     }),
+    */
   ],
   bootstrap: [AppComponent]
 })

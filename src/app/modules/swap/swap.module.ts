@@ -17,6 +17,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzResultModule } from 'ng-zorro-antd/result';
+import { NzTagModule } from 'ng-zorro-antd/tag';
 
 @NgModule({
   imports: [
@@ -37,6 +38,7 @@ import { NzResultModule } from 'ng-zorro-antd/result';
     NzTypographyModule,
     NzDividerModule,
     NzResultModule,
+    NzTagModule,
   ],
   declarations: [HomeComponent],
 })

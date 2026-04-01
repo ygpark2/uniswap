@@ -1,3 +1,8 @@
 export const env: { [s: string]: (string | null); } = {
-  'npm_package_version': '1.0.0'
+  'npm_package_version': '1.0.0',
+  'SEPOLIA_CONTRACT_ADDRESS': '0xAB5cc4E4bA6DaB8A6985F53C23280e2ffCD5863D',
+  'TRON_CONTRACT_ADDRESS': 'TUXXUxtb1SKjQXcbPPEwowTZAZXR3hsRxW',
+  'SOLANA_PROGRAM_ID': '5W3ujVoC2VsvhUerEo7Ezo9phbsKeVCuAUXKdnZuUCXo',
+  'SOLANA_STATE_ACCOUNT': 'F7NjVkTsHmSYoB8KoVQHxtayrx6PdqJRSHcEmjSBdXvL',
+  'APTOS_CONTRACT_ADDRESS': '0x0572c4964fabd21001c07ad50c20f960d4f2a8a49383914a692492c64ce39a80'
 };

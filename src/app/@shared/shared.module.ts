@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { SectionHeaderComponent } from './components/section-header/section-header.component';
 import { PageNotFoundComponent } from './components/page-not-found/page-not-found.component';
 import { RouterModule } from '@angular/router';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import {MatInputModule} from '@angular/material/input';
 import {MatButtonModule} from '@angular/material/button';
 import {MatDialogModule} from '@angular/material/dialog';
@@ -34,7 +33,6 @@ import { LoaderComponent } from './components/loader/loader.component';
   imports: [
     CommonModule,
     RouterModule,
-    BrowserAnimationsModule,
     InfiniteScrollModule,
     MatInputModule,
     MatButtonModule,
@@ -58,7 +56,6 @@ import { LoaderComponent } from './components/loader/loader.component';
     LoaderComponent,
     SectionHeaderComponent,
     PageNotFoundComponent,
-    BrowserAnimationsModule,
     InfiniteScrollModule,
     MatInputModule,
     MatButtonModule,

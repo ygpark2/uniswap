@@ -29,20 +29,25 @@ build:
 
 # Deploy EVM (Sepolia) contract
 deploy-evm:
-	npx hardhat run scripts/deploy-sepolia.ts --network sepolia
+	cd contracts/evm && npm install && npx hardhat run scripts/deploy-sepolia.js --network sepolia
 
 # Deploy TRON (Nile) contract
 deploy-tron:
 	cd contracts/tron && npx tronbox migrate --network nile
 
-# Deploy Solana (Devnet) program
+# Deploy Solana (Local/Default) program
 deploy-solana:
 	cd contracts/solana && cargo build-sbf
-	solana program deploy contracts/solana/target/deploy/solana_swap_gateway.so --url devnet
+	solana program deploy contracts/solana/target/deploy/solana_swap_gateway.so
+	# solana program deploy contracts/solana/target/deploy/solana_swap_gateway.so --url devnet
 
-# Deploy Aptos (Testnet) module
+# Deploy Aptos (Devnet) module
 deploy-aptos:
-	cd contracts/aptos && aptos move publish --url https://fullnode.testnet.aptoslabs.com/v1 --named-addresses my_addr=$(shell grep APTOS_PRIVATE_KEY .env | cut -d '=' -f2)
+	cd contracts/aptos && aptos move publish \
+		--url https://fullnode.devnet.aptoslabs.com/v1 \
+		--named-addresses my_addr=$(shell grep APTOS_ACCOUNT_ADDRESS .env | cut -d '=' -f2) \
+		--private-key $(shell grep APTOS_PRIVATE_KEY .env | cut -d '=' -f2) \
+		--assume-yes
 
 # Deploy all contracts
 deploy-all: deploy-evm deploy-tron deploy-solana deploy-aptos

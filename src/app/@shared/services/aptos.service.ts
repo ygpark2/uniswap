@@ -10,7 +10,7 @@ export class AptosService {
   private aptos: Aptos;
 
   constructor() {
-    const config = new AptosConfig({ network: Network.TESTNET });
+    const config = new AptosConfig({ network: Network.DEVNET });
     this.aptos = new Aptos(config);
   }
 
@@ -29,14 +29,16 @@ export class AptosService {
     const octasAmount = BigInt(Math.floor(amount * 1e8));
 
     const transaction = await window.aptos.signAndSubmitTransaction({
-      function: `${adminAddr}::swap_gateway::deposit`,
-      type_arguments: [],
-      arguments: [
-        adminAddr,
-        octasAmount.toString(),
-        targetChain,
-        targetAddress
-      ],
+      payload: {
+        function: `${adminAddr}::swap_gateway_v2::deposit`,
+        type_arguments: [],
+        arguments: [
+          adminAddr,
+          octasAmount.toString(),
+          targetChain,
+          targetAddress
+        ],
+      }
     });
 
     const response = await this.aptos.waitForTransaction({ transactionHash: transaction.hash });

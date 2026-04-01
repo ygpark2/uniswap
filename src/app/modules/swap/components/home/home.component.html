@@ -3,7 +3,14 @@
     class="site-page-header"
     nzTitle="Cross-Chain Swap"
     nzSubtitle="Deposit and swap across multiple chains (POC)"
-  ></nz-page-header>
+  >
+    <nz-page-header-extra>
+      <button *ngIf="!connectedAddress" nz-button nzType="primary" (click)="connectWallet()">Connect Wallet</button>
+      <nz-tag *ngIf="connectedAddress" nzColor="blue">{{ connectedAddress | slice:0:6 }}...{{ connectedAddress | slice:-4 }}</nz-tag>
+    </nz-page-header-extra>
+  </nz-page-header>
+
+  <h2>SWAP PAGE LOADED</h2>
 
   <nz-card nzTitle="Swap Gateway" [nzBordered]="false">
     <form nz-form [formGroup]="swapForm" (ngSubmit)="onSwap()">

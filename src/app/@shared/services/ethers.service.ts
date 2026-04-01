@@ -15,20 +15,59 @@ export class EthersService {
   ];
 
   constructor() {
-    if ((window as any).ethereum) {
-      this.provider = new BrowserProvider((window as any).ethereum);
+    // We don't initialize provider here to avoid immediate conflicts
+  }
+
+  private ensureProvider() {
+    if (this.provider) return;
+
+    const ethereum = (window as any).ethereum;
+    if (!ethereum) throw new Error('MetaMask is not installed');
+
+    // Handle multiple providers (e.g. MetaMask + Coinbase + Phantom)
+    let selectedProvider = ethereum;
+    if (ethereum.providers?.length) {
+        selectedProvider = ethereum.providers.find((p: any) => p.isMetaMask) || ethereum.providers[0];
     }
+
+    this.provider = new BrowserProvider(selectedProvider);
   }
 
   async connectWallet(): Promise<string[]> {
-    if (!this.provider) throw new Error('MetaMask is not installed');
-    const accounts = await this.provider.send('eth_requestAccounts', []);
-    this.signer = await this.provider.getSigner();
-    return accounts;
+    this.ensureProvider();
+    
+    try {
+        // Check if already connected
+        const alreadyConnected = await this.provider!.send('eth_accounts', []);
+        if (alreadyConnected && alreadyConnected.length > 0) {
+            this.signer = await this.provider!.getSigner();
+            return alreadyConnected;
+        }
+
+        // Request connection
+        const accounts = await this.provider!.send('eth_requestAccounts', []);
+        this.signer = await this.provider!.getSigner();
+        return accounts;
+    } catch (error: any) {
+        console.error('EthersService.connectWallet Error:', error);
+        if (error.code === -32603) {
+            throw new Error('MetaMask error (-32603). Please unlock MetaMask and ensure it is set as your default wallet.');
+        }
+        throw error;
+    }
   }
 
   async deposit(contractAddress: string, tokenAddress: string, amount: number, targetChain: string, targetAddress: string): Promise<string> {
-    if (!this.signer) await this.connectWallet();
+    if (!this.signer) {
+        await this.connectWallet();
+    }
+
+    const network = await this.provider!.getNetwork();
+    console.log('Current Network:', network.name, 'ChainId:', network.chainId.toString());
+    
+    if (network.chainId.toString() !== '11155111') {
+        throw new Error(`Wrong network! You are on ${network.name} (ChainId: ${network.chainId}). Please switch to Sepolia.`);
+    }
 
     const abi = [
       "function deposit(address token, uint256 amount, string calldata targetChain, string calldata targetAddress) external payable returns (uint256)"
@@ -37,19 +76,28 @@ export class EthersService {
     const contract = new Contract(contractAddress, abi, this.signer!);
     let finalAmount: bigint;
 
-    if (tokenAddress === '0x0000000000000000000000000000000000000000') {
-      finalAmount = parseUnits(amount.toString(), 18); // ETH
-      const tx = await (contract as any).deposit(tokenAddress, 0, targetChain, targetAddress, {
+    const cleanTokenAddress = (tokenAddress || '').trim().toLowerCase();
+    const isNative = cleanTokenAddress === '' || 
+                     cleanTokenAddress === '0x0000000000000000000000000000000000000000' || 
+                     cleanTokenAddress === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
+
+    if (isNative) {
+      finalAmount = parseUnits(amount.toString(), 18);
+      const tx = await (contract as any).deposit('0x0000000000000000000000000000000000000000', 0, targetChain, targetAddress, {
         value: finalAmount
       });
       const receipt = await tx.wait();
       return receipt.hash;
     } else {
-      const tokenContract = new Contract(tokenAddress, this.ERC20_ABI, this.signer!);
+      const code = await this.provider!.getCode(cleanTokenAddress);
+      if (code === '0x') {
+          throw new Error(`Token address is not a contract on Sepolia. Please use 0x00...00 for Native ETH.`);
+      }
+
+      const tokenContract = new Contract(cleanTokenAddress, this.ERC20_ABI, this.signer!);
       const decimals = await (tokenContract as any).decimals();
       finalAmount = parseUnits(amount.toString(), decimals);
 
-      // Check allowance
       const userAddress = await this.signer!.getAddress();
       const allowance = await (tokenContract as any).allowance(userAddress, contractAddress);
       
@@ -58,7 +106,7 @@ export class EthersService {
         await approveTx.wait();
       }
 
-      const tx = await (contract as any).deposit(tokenAddress, finalAmount, targetChain, targetAddress);
+      const tx = await (contract as any).deposit(cleanTokenAddress, finalAmount, targetChain, targetAddress);
       const receipt = await tx.wait();
       return receipt.hash;
     }

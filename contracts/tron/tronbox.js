@@ -14,5 +14,7 @@ module.exports = {
     solc: {
       version: "0.8.20"
     }
-  }
+  },
+  contracts_directory: "contracts",
+  migrations_directory: "migrations"
 };

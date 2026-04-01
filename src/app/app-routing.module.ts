@@ -1,10 +1,17 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
+import { LayoutComponent } from './@shared/modules/layout/layout.component';
 
 const routes: Routes = [
-  { path: 'swap', loadChildren: () => import('./modules/swap/swap.module').then(m => m.SwapModule) },
-  // Fallback when no prior route is matched
-  { path: '**', redirectTo: 'swap', pathMatch: 'full' },
+  {
+    path: '',
+    component: LayoutComponent,
+    children: [
+      { path: 'swap', loadChildren: () => import('./modules/swap/swap.module').then(m => m.SwapModule) },
+      { path: '', redirectTo: 'swap', pathMatch: 'full' }
+    ]
+  },
+  { path: '**', redirectTo: 'swap' }
 ];
 
 @NgModule({

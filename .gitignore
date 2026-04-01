@@ -32,6 +32,8 @@ yarn-error.log
 
 # Miscellaneous
 .env
+src/environments/.env.ts
+scripts/processed_deposits.json
 /.angular/cache
 .sass-cache/
 /connect.lock
