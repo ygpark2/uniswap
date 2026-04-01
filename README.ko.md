@@ -10,6 +10,42 @@
 4.  **자동화된 솔버(Solver)**: 소스 체인의 입금 이벤트를 감지하여 목적지 체인의 상태를 자동으로 업데이트하는 릴레이어 포함.
 5.  **상태 관리**: JSON 기반의 로컬 DB를 사용하여 중복 처리 방지.
 
+## 📸 스크린샷
+
+| TRON (Nile) | Solana (Devnet) | Aptos (Testnet) |
+| :---: | :---: | :---: |
+| ![TRON](docs/images/tron.png) | ![Solana](docs/images/solana.png) | ![Aptos](docs/images/aptos.png) |
+
+---
+
+## 🧠 기술적 도전 과제 및 해결 방안
+
+이 교차 체인 POC를 개발하는 과정에서 각 체인별로 발생한 기술적 난관과 이를 해결한 방법은 다음과 같습니다:
+
+### 1. Ethereum (EVM / Sepolia)
+*   **문제**: 퍼블릭 RPC 노드(예: PublicNode, Infura)는 부하 방지를 위해 이벤트 필터를 수시로 삭제하며, 이로 인해 `ethers.js`에서 "filter not found" 에러가 빈번하게 발생함.
+*   **해결**: **수동 폴링(Manual Polling) 전략** 도입. `contract.on()` 대신 리레이어가 마지막 처리 블록 번호를 추적하고, 10초마다 `queryFilter()`를 호출하여 이벤트를 직접 조회하도록 수정.
+*   **문제**: 최신 빌드 도구(Angular 21의 Esbuild)는 Node.js 폴리필을 포함하지 않으나, `ethers.js` 등 블록체인 SDK는 `Buffer`, `global`, `process` 변수를 필수적으로 요구함.
+*   **해결**: `src/polyfills.ts`에 해당 전역 변수들을 수동으로 주입하고 `buffer` 패키지를 설치하여 브라우저 호환성 확보.
+
+### 2. TRON (Nile)
+*   **문제**: TRON 주소는 Base58(`T...`)과 Hex(`41...`) 두 형식이 혼재되어 있으며, 이를 잘못 혼용할 경우 컨트랙트 호출이 실패함.
+*   **해결**: 프론트엔드와 설정 파일에서는 **Base58** 형식을 표준으로 사용하고, Solidity 코드 내부에서만 `address` 타입을 처리하도록 로직을 통일함.
+*   **문제**: Hardhat의 ESM 요구사항(`"type": "module"`)과 TronBox의 CommonJS 요구사항(`require`) 간의 의존성 충돌 발생.
+*   **해결**: 컨트랙트 환경 분리. 각 체인 폴더(`contracts/evm`, `contracts/tron`)가 자체적인 `package.json`과 설정을 가지도록 독립된 패키지 구조로 재편.
+
+### 3. Solana (Devnet)
+*   **문제**: EVM과 달리 솔라나는 기본적으로 "인덱싱된 이벤트" 개념이 없어 리레이어가 프로그램 활동을 감시하기 어려움.
+*   **해결**: **정형화된 로깅(Structured Logging)** 구현. Rust 프로그램에서 `msg!` 매크로를 통해 특정 패턴(`Deposited: {amount}, {target}, ...`)의 로그를 남기고, 솔버에서 `connection.onLogs()`와 정규표현식(Regex)을 사용하여 실시간으로 데이터를 파싱함.
+*   **문제**: Anchor와 같은 고수준 프레임워크 없이 순수 인스트럭션 데이터 인코딩 필요.
+*   **해결**: TypeScript에서 **Borsh 호환 버퍼 인코더**를 직접 구현하여 `U64`(Little Endian) 및 `String`(길이 + 바이트) 직렬화 로직을 완성함.
+
+### 4. Aptos (Devnet)
+*   **문제**: 앱토스는 엄격한 **리소스 안전성(Resource Safety)**을 강제함. 구조체 레이아웃을 변경(예: 이벤트 핸들 추가)하면 `BACKWARD_INCOMPATIBLE_MODULE_UPDATE` 에러가 발생하며 업데이트가 차단됨.
+*   **해결**: 개발 단계에서는 모듈 이름에 버전을 명시(`swap_gateway_v2`)하여 새 모듈로 게시하고, 배포 전 데이터 구조를 확정해야 함을 확인.
+*   **문제**: SDK v6에서 특정 모듈 이벤트를 가져오는 API의 일관성 부족 및 인덱서 지연 문제.
+*   **해결**: **리소스 폴링(Resource Polling)** 방식으로 전환. 리레이어가 `getAccountResource`를 통해 `Gateway`의 전체 상태를 읽어오고, `deposits` 벡터의 길이를 비교하여 새 트랜잭션을 감지함으로써 인덱서 상태와 관계없이 100% 신뢰성 확보.
+
 ---
 
 ## 📂 프로젝트 구조
@@ -17,20 +53,32 @@
 ```text
 .
 ├── contracts/              # 스마트 컨트랙트 소스 코드
-│   ├── evm/                # Solidity (Sepolia)
-│   ├── tron/               # Solidity (Nile) + TronBox 설정
-│   ├── solana/             # Rust (Devnet)
-│   └── aptos/              # Move (Testnet)
-├── scripts/                # 오프체인 스크립트
-│   ├── solver.ts           # 통합 이벤트 와쳐 및 릴레이어
-│   └── deploy-sepolia.ts   # EVM 배포 스크립트
-├── src/app/modules/swap/   # Angular 스왑 UI 및 로직
-└── Makefile                # 주요 명령어 자동화
+│   ├── evm/                # Hardhat 환경 (Sepolia)
+│   │   ├── contracts/      # Solidity 소스
+│   │   ├── scripts/        # 배포 스크립트 (.js)
+│   │   └── package.json    # 독립된 EVM 의존성 (ESM)
+│   ├── tron/               # TronBox 환경 (Nile)
+│   │   ├── contracts/      # Solidity 소스
+│   │   ├── migrations/     # 배포 스크립트
+│   │   └── tronbox.js      # TRON 설정
+│   ├── solana/             # Rust/Cargo 환경 (Local/Devnet)
+│   │   └── lib.rs          # Solana 프로그램 로직
+│   └── aptos/              # Move 환경 (Devnet)
+│       ├── sources/        # Move 소스
+│       └── Move.toml       # Aptos 설정
+├── scripts/                # 오프체인 릴레이어
+│   ├── solver.ts           # 통합 4개 체인 이벤트 와쳐 & 릴레이어
+│   └── processed_deposits.json # 릴레이어 상태 DB
+├── src/app/                # Angular 프론트엔드
+│   ├── modules/swap/       # 메인 스왑 UI
+│   └── @shared/services/   # 블록체인 통신 로직 (ethers, tron, solana, aptos)
+└── Makefile                # 주요 명령어 자동화 (Centralized)
 ```
 
 ---
 
-## 🛠 환경 설정
+## 🛠 Solana 로컬 개발 환경 설정
+
 
 1.  **의존성 설치**:
     ```bash
@@ -75,6 +123,41 @@
     *   **SOLANA_STATE_ACCOUNT**: 프로그램 데이터를 저장할 계정이 필요합니다. `solana-keygen new -o state-keypair.json`으로 키파일을 생성한 후, 그 공개키(`solana-keygen pubkey state-keypair.json`)를 사용하세요.
     *   **APTOS_CONTRACT_ADDRESS**: `make deploy-aptos` 실행 시 사용된 계정 주소(모듈을 게시한 본인 계정)가 계약 주소가 됩니다.
 *   *⚠️ 주의: 개인키는 절대 타인에게 공유하거나 소스 코드에 커밋하지 마세요.*
+
+---
+
+## 🛠 Solana 로컬 개발 환경 설정
+
+솔라나 Devnet 파우셋(Faucet) 이용이 원활하지 않을 경우, `solana-test-validator`를 사용하여 로컬에서 개발 및 테스트가 가능합니다.
+
+1.  **로컬 밸리데이터 실행**:
+    새 터미널을 열고 다음 명령어를 실행합니다:
+    ```bash
+    solana-test-validator
+    ```
+    *개발이 진행되는 동안 이 터미널을 계속 켜두어야 합니다.*
+
+2.  **CLI 설정을 Localhost로 변경**:
+    ```bash
+    solana config set --url localhost
+    ```
+
+3.  **로컬 SOL 에어드랍**:
+    ```bash
+    solana airdrop 100
+    ```
+
+4.  **.env 파일 업데이트**:
+    ```env
+    SOLANA_RPC_URL=http://127.0.0.1:8899
+    SOLANA_NETWORK= # 빈값으로 두면 RPC_URL을 사용합니다
+    ```
+
+5.  **로컬 배포 실행**:
+    ```bash
+    make deploy-solana
+    ```
+    *참고: `make deploy-solana` 명령어는 현재 CLI 설정(localhost)을 기반으로 동작하도록 구성되어 있습니다.*
 
 ---
 

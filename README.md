@@ -10,6 +10,42 @@ This project is a Proof of Concept (POC) designed to verify cross-chain swap fun
 4.  **Automated Solver**: Includes a relayer that detects deposit events on the source chain and automatically updates the status on the destination chain.
 5.  **State Management**: Uses a JSON-based local database to prevent duplicate processing.
 
+## 📸 Screenshots
+
+| TRON (Nile) | Solana (Devnet) | Aptos (Testnet) |
+| :---: | :---: | :---: |
+| ![TRON](docs/images/tron.png) | ![Solana](docs/images/solana.png) | ![Aptos](docs/images/aptos.png) |
+
+---
+
+## 🧠 Technical Challenges & Solutions
+
+During the development of this cross-chain POC, several chain-specific technical hurdles were encountered and resolved:
+
+### 1. Ethereum (EVM / Sepolia)
+*   **Challenge**: Public RPC nodes (e.g., PublicNode, Infura) often drop event filters after a short period, leading to "filter not found" errors in `ethers.js`.
+*   **Solution**: Implemented a **Manual Polling Strategy**. Instead of using `contract.on()`, the relayer now tracks the last processed block and manually calls `queryFilter()` every 10 seconds.
+*   **Challenge**: Modern build tools (like Angular 21's Esbuild) do not include Node.js polyfills, but `ethers.js` and other SDKs require `Buffer`, `global`, and `process`.
+*   **Solution**: Manually configured `src/polyfills.ts` to inject these globals into the `window` object and installed the `buffer` package.
+
+### 2. TRON (Nile)
+*   **Challenge**: TRON addresses exist in two formats: Base58 (`T...`) and Hex (`41...`). Mixing them causes contract call failures.
+*   **Solution**: Standardized on **Base58** for all frontend and config interactions, while ensuring the Solidity code correctly handles the `address` type internally.
+*   **Challenge**: Conflict between Hardhat's ESM requirement (`"type": "module"`) and TronBox's CommonJS requirement (`require`).
+*   **Solution**: Decoupled the contract environments. Each chain folder (`contracts/evm`, `contracts/tron`) now has its own `package.json` and local configuration to prevent dependency clashes.
+
+### 3. Solana (Devnet)
+*   **Challenge**: Unlike EVM, Solana doesn't have built-in "Indexed Events". Monitoring program activity is harder for relayers.
+*   **Solution**: Implemented **Structured Logging**. The Rust program emits specific `msg!` strings (e.g., `Deposited: {amount}, {target}, ...`), and the solver uses `connection.onLogs()` with a Regex parser to extract data in real-time.
+*   **Challenge**: Manual instruction encoding without high-level frameworks like Anchor.
+*   **Solution**: Built a manual **Borsh-compatible buffer encoder** in TypeScript to handle `U64` (Little Endian) and `String` (Length + Bytes) serialization for contract calls.
+
+### 4. Aptos (Devnet)
+*   **Challenge**: Aptos enforces strict **Resource Safety**. Changing a struct layout (e.g., adding an event handle) causes a `BACKWARD_INCOMPATIBLE_MODULE_UPDATE` error.
+*   **Solution**: During development, we used versioned module names (`swap_gateway_v2`). For the production flow, we learned to finalize data structures before deployment.
+*   **Challenge**: Inconsistencies in SDK v6 for fetching specific module events.
+*   **Solution**: Switched to **Resource Polling**. The relayer now uses `getAccountResource` to fetch the entire `Gateway` state and compares the `deposits` vector length to detect new transactions, ensuring 100% reliability regardless of indexer status.
+
 ---
 
 ## 📂 Project Structure
@@ -17,20 +53,32 @@ This project is a Proof of Concept (POC) designed to verify cross-chain swap fun
 ```text
 .
 ├── contracts/              # Smart contract source code
-│   ├── evm/                # Solidity (Sepolia)
-│   ├── tron/               # Solidity (Nile) + TronBox config
-│   ├── solana/             # Rust (Devnet)
-│   └── aptos/              # Move (Testnet)
-├── scripts/                # Off-chain scripts
-│   ├── solver.ts           # Unified event watcher and relayer
-│   └── deploy-sepolia.ts   # EVM deployment script
-├── src/app/modules/swap/   # Angular swap UI and logic
-└── Makefile                # Automation for major commands
+│   ├── evm/                # Hardhat environment (Sepolia)
+│   │   ├── contracts/      # Solidity sources
+│   │   ├── scripts/        # Deployment scripts (.js)
+│   │   └── package.json    # Isolated EVM dependencies (ESM)
+│   ├── tron/               # TronBox environment (Nile)
+│   │   ├── contracts/      # Solidity sources
+│   │   ├── migrations/     # Deployment scripts
+│   │   └── tronbox.js      # TRON configuration
+│   ├── solana/             # Rust/Cargo environment (Local/Devnet)
+│   │   └── lib.rs          # Solana program logic
+│   └── aptos/              # Move environment (Devnet)
+│       ├── sources/        # Move sources
+│       └── Move.toml       # Aptos configuration
+├── scripts/                # Off-chain relayer
+│   ├── solver.ts           # Unified 4-chain event watcher & relayer
+│   └── processed_deposits.json # Relayer state database
+├── src/app/                # Angular Frontend
+│   ├── modules/swap/       # Main Swap UI
+│   └── @shared/services/   # Blockchain interaction logic (ethers, tron, solana, aptos)
+└── Makefile                # Centralized command automation
 ```
 
 ---
 
-## 🛠 Environment Setup
+## 🛠 Solana Local Development Setup
+
 
 1.  **Install Dependencies**:
     ```bash
@@ -75,6 +123,41 @@ This project is a Proof of Concept (POC) designed to verify cross-chain swap fun
     *   **SOLANA_STATE_ACCOUNT**: You need a data account. Create one using `solana-keygen new -o state-keypair.json`, then use its public key (`solana-keygen pubkey state-keypair.json`).
     *   **APTOS_CONTRACT_ADDRESS**: After `make deploy-aptos`, the account address used for publishing (typically your own account) becomes the contract address.
 *   *⚠️ Warning: Never share your private keys or commit them to version control.*
+
+---
+
+## 🛠 Solana Local Development Setup
+
+If the Solana Devnet Faucet is unavailable, you can use `solana-test-validator` to build and test locally.
+
+1.  **Start Local Validator**:
+    Open a new terminal and run:
+    ```bash
+    solana-test-validator
+    ```
+    *Keep this terminal running during your development.*
+
+2.  **Configure CLI to Localhost**:
+    ```bash
+    solana config set --url localhost
+    ```
+
+3.  **Airdrop Local SOL**:
+    ```bash
+    solana airdrop 100
+    ```
+
+4.  **Update .env for Localhost**:
+    ```env
+    SOLANA_RPC_URL=http://127.0.0.1:8899
+    SOLANA_NETWORK= # Leave empty to use RPC_URL
+    ```
+
+5.  **Deploy to Local Validator**:
+    ```bash
+    make deploy-solana
+    ```
+    *Note: The `make deploy-solana` command is pre-configured to use your local CLI settings.*
 
 ---
 
