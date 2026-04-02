@@ -45,3 +45,10 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Contract builds and artifacts
+contracts/aptos/build/
+contracts/evm/artifacts/
+contracts/evm/cache/
+contracts/solana/target/
+contracts/tron/build/
