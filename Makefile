@@ -1,4 +1,4 @@
-.PHONY: deploy-evm deploy-tron deploy-solana deploy-aptos deploy-all solve install install-tools uninstall-tools build
+.PHONY: deploy-evm deploy-tron deploy-solana deploy-aptos deploy-all solve watch install install-tools uninstall-tools build
 
 # Install Node.js dependencies
 install:
@@ -54,4 +54,8 @@ deploy-all: deploy-evm deploy-tron deploy-solana deploy-aptos
 
 # Run solver (event watcher + automated relay)
 solve:
-	npm run solve
+	npx ts-node scripts/solver.ts
+
+# Run event watcher only (All 4 layers)
+watch:
+	npx ts-node scripts/watcher.ts

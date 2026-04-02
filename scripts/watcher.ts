@@ -1,12 +1,14 @@
 import { ethers } from "ethers";
 import { TronWeb } from "tronweb";
+import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+import * as solana from "@solana/web3.js";
 import * as dotenv from "dotenv";
 
 dotenv.config();
 
 // EVM ABI (이벤트만 포함)
 const EVM_ABI = [
-  "event Deposited(uint256 indexed depositId, address indexed user, uint256 amount, string targetChain, string targetAddress)"
+  "event Deposited(uint256 indexed depositId, address indexed user, address indexed token, uint256 amount, string targetChain, string targetAddress)"
 ];
 
 async function watchSepolia() {
@@ -23,11 +25,12 @@ async function watchSepolia() {
 
   console.log(`[Sepolia] 감시 시작: ${contractAddress}`);
 
-  contract.on("Deposited", (depositId, user, amount, targetChain, targetAddress, event) => {
+  contract.on("Deposited", (depositId, user, token, amount, targetChain, targetAddress, event) => {
     console.log("\n********** [Sepolia Event Detected] **********");
     console.log(`- Deposit ID: ${depositId}`);
     console.log(`- User: ${user}`);
-    console.log(`- Amount: ${ethers.formatEther(amount)} ETH`);
+    console.log(`- Token: ${token}`);
+    console.log(`- Amount: ${ethers.formatEther(amount)} ETH/Token`);
     console.log(`- Target Chain: ${targetChain}`);
     console.log(`- Target Address: ${targetAddress}`);
     console.log(`- Transaction: ${event.log.transactionHash}`);
@@ -54,7 +57,6 @@ async function watchTron() {
 
   let lastTimestamp = Date.now();
 
-  // TRON은 폴링(Polling) 방식으로 이벤트를 체크하는 것이 안정적입니다.
   setInterval(async () => {
     try {
       const events = await (tronWeb as any).getEventResult(contractAddress, {
@@ -65,7 +67,6 @@ async function watchTron() {
 
       if (!events || events.length === 0) return;
 
-      // 새로운 이벤트만 필터링 (최신순으로 올 수 있으므로 정렬 고려)
       const newEvents = events.filter((ev: any) => ev.timestamp > lastTimestamp);
       
       for (const ev of newEvents) {
@@ -79,18 +80,88 @@ async function watchTron() {
         console.log("********************************************\n");
         if (ev.timestamp > lastTimestamp) lastTimestamp = ev.timestamp;
       }
-    } catch (error) {
-      // 에러 무시 (네트워크 이슈 등)
+    } catch (error) {}
+  }, 5000);
+}
+
+async function watchAptos() {
+  const adminAddr = process.env['APTOS_ACCOUNT_ADDRESS']!;
+  if (!adminAddr || adminAddr.startsWith('0x000')) {
+    console.warn("[Aptos Devnet] 설정이 올바르지 않아 감시를 건너뜁니다.");
+    return;
+  }
+
+  const aptosConfig = new AptosConfig({ network: Network.DEVNET });
+  const aptos = new Aptos(aptosConfig);
+
+  console.log(`[Aptos Devnet] 감시 시작: ${adminAddr}`);
+  
+  let lastProcessedId = -1;
+
+  setInterval(async () => {
+    try {
+      const resource = await aptos.getAccountResource({
+        accountAddress: adminAddr,
+        resourceType: `${adminAddr}::swap_gateway_v2::Gateway`
+      });
+
+      const gatewayData = resource as any;
+      const deposits = gatewayData.deposits || [];
+
+      for (const d of deposits) {
+        const id = parseInt(d.id);
+        if (id > lastProcessedId) {
+          console.log("\n********** [Aptos Event Detected] **********");
+          console.log(`- Deposit ID: ${id}`);
+          console.log(`- Amount: ${d.amount}`);
+          console.log(`- Target Chain: ${d.target_chain}`);
+          console.log(`- Target Address: ${d.target_address}`);
+          console.log("********************************************\n");
+          lastProcessedId = id;
+        }
+      }
+    } catch (error) {}
+  }, 5000);
+}
+
+async function watchSolana() {
+  const programIdStr = process.env['SOLANA_PROGRAM_ID']!;
+  if (!programIdStr || programIdStr.startsWith('Prog')) {
+    console.warn("[Solana] 설정이 올바르지 않아 감시를 건너뜁니다.");
+    return;
+  }
+
+  const rpcUrl = process.env['SOLANA_RPC_URL'] || "http://127.0.0.1:8899";
+  const connection = new solana.Connection(rpcUrl, "confirmed");
+  const programId = new solana.PublicKey(programIdStr);
+
+  console.log(`[Solana] 감시 시작: ${programIdStr}`);
+
+  connection.onLogs(programId, (logs) => {
+    for (const log of logs.logs) {
+      const match = log.match(/Deposited: (\d+), ([^,]+), ([^,]+), ([^,]+)/);
+      if (match) {
+        const [_, amount, targetChain, targetAddress, user] = match;
+        console.log("\n********** [Solana Event Detected] **********");
+        console.log(`- Signature: ${logs.signature}`);
+        console.log(`- User: ${user}`);
+        console.log(`- Amount: ${amount}`);
+        console.log(`- Target Chain: ${targetChain}`);
+        console.log(`- Target Address: ${targetAddress}`);
+        console.log("*********************************************\n");
+      }
     }
-  }, 5000); // 5초마다 확인
+  }, "confirmed");
 }
 
 async function main() {
-  console.log("--- Multi-chain Swap Event Watcher Start ---");
+  console.log("--- Multi-chain Swap Event Watcher Start (All 4 Layers) ---");
   
   await Promise.all([
     watchSepolia(),
-    watchTron()
+    watchTron(),
+    watchAptos(),
+    watchSolana()
   ]);
 }
 
