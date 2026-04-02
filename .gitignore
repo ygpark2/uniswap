@@ -51,5 +51,6 @@ contracts/aptos/build/
 contracts/evm/artifacts/
 contracts/evm/cache/
 contracts/evm/node_modules/
+contracts/solana/Cargo.lock
 contracts/solana/target/
 contracts/tron/build/
